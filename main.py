@@ -3,8 +3,6 @@ from flask import Flask, render_template, jsonify, request
 from components import *
 from mp_game_engine import *
 import pandas as pd
-import json
-
 
 app = Flask(__name__)
 
@@ -13,27 +11,31 @@ player_ships = create_battleships()
 ai_board_empty = Initialise_board()
 player_board_empty = Initialise_board()
 
-@app.route('/', methods=['GET'])
-def root():
-    if request.method == "GET":
-        global ai_board, player_board 
-        ai_board = place_battleships(ai_board_empty, ai_ships, "Simple")
-        try:
-            print(data)
-        except:
-            player_board = place_battleships(player_board_empty, player_ships, "Custom")
-            return render_template('main.html', player_board=player_board)
-
 @app.route('/placement', methods=['GET','POST'])
 def placement_interface():
     if request.method == "GET":
         board = Initialise_board()
         ships = create_battleships()
-        return render_template('placement.html', ships=ships, board_size= len(board), board=board) #we can either use ai ships or player ships because they both have the same ships
+        return render_template('placement.html', ships=ships, board_size=len(board)) #we can either use ai ships or player ships because they both have the same ships
     elif request.method == 'POST':
         global data
         data = request.get_json()
         return jsonify({'message': 'Received'}), 200
+
+@app.route('/', methods=['GET'])
+def root():
+    if request.method == "GET":
+        global ai_board, player_board 
+        ai_board = place_battleships(ai_board_empty, ai_ships, "Random")
+        try:
+            player_board_empty = Initialise_board()
+            player_board = place_battleships(player_board_empty, player_ships, "Custom", data)
+            return render_template('main.html', player_board=player_board)
+        except:
+            player_board_empty = Initialise_board()
+            player_board = place_battleships(player_board_empty, player_ships, "Custom")
+            return render_template('main.html', player_board=player_board)
+
 
 @app.route('/attack', methods=['GET'])
 def process_attack():
@@ -43,7 +45,7 @@ def process_attack():
         hit = attack((x,y), ai_board, ai_ships) 
         coords = generate_attack()
         attack(coords, player_board, player_ships)
-        if all(ship == 0 for ship in ai_ships.values()) == True: #if player sinks all ai ships
+        if all  (ship == 0 for ship in ai_ships.values()) == True: #if player sinks all ai ships
             return jsonify({'hit': hit,
             'AI_Turn': coords,
             'finished': "Game Over Player wins"
