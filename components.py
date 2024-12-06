@@ -26,33 +26,26 @@ def place_battleships(board:list, ships:dict, argument="Simple", data=None): #we
                 row += 1
     elif argument == "Random":
         for ship in ships:
-            if int(ships[ship]) > len(board):
+            if int(ships[ship]) > len(board): #if size of ship is bigger than board then dont place
                 pass
             else:
                 valid = False
                 while valid != True: #have to check if ships collides with already placed ship
                     orientation = random.choice(["v", "h"]) #randomly select 
                     if orientation == "v":  
-                        row = random.randrange(0, (len(board)-int(ships[ship])))
-                        col = random.randrange(0, len(board)-1)
-                        for i in range(int(ships[ship])):
-                            if board[row + i][col] == None:
+                        row = random.randrange(0, (len(board)-int(ships[ship]) + 1)) #need to add one because randrange is exclusive in upper bound
+                        col = random.randrange(0, len(board))
+                        if all(board[row + i][col] is None for i in range(ships[ship])) == True: #check if any ships in way of ship
+                            for i in range (ships[ship]): #place ship
                                 board[row + i][col] = ship
-                            else:
-                                for j in range(i):
-                                    board[row + i][col] = None
-                                break                        
-                    else:
-                        col = random.randrange(0, (len(board)-int(ships[ship])))
-                        row = random.randrange(0, len(board)-1)
-                        for i in range(int(ships[ship])):
-                            if board[row][col + i] == None:
+                                valid = True
+                    else:           
+                        col = random.randrange(0, (len(board)-int(ships[ship]) + 1))
+                        row = random.randrange(0, len(board))
+                        if all(board[row][col + i] is None for i in range(ships[ship])) == True: #check if any ships in way of ship
+                            for i in range (ships[ship]): #place ship
                                 board[row][col + i] = ship
-                            else:
-                                for j in range(i):
-                                    board[row][col + i] = None
-                                break    
-                    valid = True
+                                valid = True   
     elif argument == "Custom":
         if data:
             pass
